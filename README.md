@@ -29,13 +29,13 @@ make -B
 
 ```
 # SIKEp434
-./sidh434_fault/test_SIDH
+./sidh434_attack/test_SIDH
 # SIKEp503
-./sidh510_fault/test_SIDH
+./sidh510_attack/test_SIDH
 # SIKEp610
-./sidh610_fault/test_SIDH
+./sidh610_attack/test_SIDH
 # SIKEp751
-./sidh751_fault/test_SIDH
+./sidh751_attack/test_SIDH
 ```
 
 ## Cleaning
@@ -48,7 +48,7 @@ make clean
 The SW implementation simulates the fault injection, and fully recover Bob's private key
 
 ```bash
-$ ./sidh434_fault/test_SIDH
+$ ./sidh434_attack/test_SIDH
 
 +++	Recovering Bob's private key
 +++	Bobₛₖ : k₀ + k₁3 + k₂3² + ... + kₙ3ⁿ
@@ -57,7 +57,7 @@ $ ./sidh434_fault/test_SIDH
 [100%] All experiments PASSED
 	Attack runs in ...............................      10623 millions of cycles
 	Attack performs ..............................        342 oracle calls 
-$ ./sidh503_fault/test_SIDH
+$ ./sidh503_attack/test_SIDH
 
 +++	Recovering Bob's private key
 +++	Bobₛₖ : k₀ + k₁3 + k₂3² + ... + kₙ3ⁿ
@@ -66,7 +66,7 @@ $ ./sidh503_fault/test_SIDH
 [100%] All experiments PASSED
 	Attack runs in ...............................      17839 millions of cycles
 	Attack performs ..............................        397 oracle calls 
-$ ./sidh610_fault/test_SIDH
+$ ./sidh610_attack/test_SIDH
 
 +++	Recovering Bob's private key
 +++	Bobₛₖ : k₀ + k₁3 + k₂3² + ... + kₙ3ⁿ
@@ -75,7 +75,7 @@ $ ./sidh610_fault/test_SIDH
 [100%] All experiments PASSED
 	Attack runs in ...............................      42880 millions of cycles
 	Attack performs ..............................        481 oracle calls 
-$ ./sidh751_fault/test_SIDH
+$ ./sidh751_attack/test_SIDH
 
 +++	Recovering Bob's private key
 +++	Bobₛₖ : k₀ + k₁3 + k₂3² + ... + kₙ3ⁿ
