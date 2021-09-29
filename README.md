@@ -48,15 +48,16 @@ make clean
 The SW implementation simulates the fault injection, and fully recover Bob's private key
 
 ```bash
-$ ./sidh434_attack/test_SIDH
+$ ./sidh434_attack/test_SIDH 
 
 +++	Recovering Bob's private key
 +++	Bobₛₖ : k₀ + k₁3 + k₂3² + ... + kₙ3ⁿ
 +++	Key recovery printing: k₀k₁k₂...kₙ
 
 [100%] All experiments PASSED
-	Attack runs in ...............................      10623 millions of cycles
-	Attack performs ..............................        342 oracle calls 
+	Attack runs in ...............................       4980 millions of cycles
+	Attack performs ..............................        225 oracle calls 
+	
 $ ./sidh503_attack/test_SIDH
 
 +++	Recovering Bob's private key
@@ -64,8 +65,9 @@ $ ./sidh503_attack/test_SIDH
 +++	Key recovery printing: k₀k₁k₂...kₙ
 
 [100%] All experiments PASSED
-	Attack runs in ...............................      17839 millions of cycles
-	Attack performs ..............................        397 oracle calls 
+	Attack runs in ...............................       9344 millions of cycles
+	Attack performs ..............................        261 oracle calls 
+	
 $ ./sidh610_attack/test_SIDH
 
 +++	Recovering Bob's private key
@@ -73,8 +75,9 @@ $ ./sidh610_attack/test_SIDH
 +++	Key recovery printing: k₀k₁k₂...kₙ
 
 [100%] All experiments PASSED
-	Attack runs in ...............................      42880 millions of cycles
-	Attack performs ..............................        481 oracle calls 
+	Attack runs in ...............................      21840 millions of cycles
+	Attack performs ..............................        319 oracle calls 
+	
 $ ./sidh751_attack/test_SIDH
 
 +++	Recovering Bob's private key
@@ -82,6 +85,6 @@ $ ./sidh751_attack/test_SIDH
 +++	Key recovery printing: k₀k₁k₂...kₙ
 
 [100%] All experiments PASSED
-	Attack runs in ...............................      98381 millions of cycles
-	Attack performs ..............................        599 oracle calls 
+	Attack runs in ...............................      49672 millions of cycles
+	Attack performs ..............................        397 oracle calls 
 ```
