@@ -1,8 +1,11 @@
-# Faulty isogenies
+# Faulty isogenies: a new kind of leakage
 
-We centered on injecting faults on the curve coefficients from isogeny chains.
-Our attack is slightly different from Yan Bo Ti's attack (faults injected on the points).
-In particular, we attack 3-isogeny chains (our results can be easily adapted to 2-isogeny chains).
+In SIDH and SIKE protocols, the public keys aim purely to belong to the quadratic field.
+We find a projective invariant property determining affine public keys that belong to the prime field.
+We exploit this property to guess whether a curve (or point) is defined over the prime field.
+Additionally, we show how to force a 3-isogeny chain to pass-through this prime field scenario.
+Furthermore, we propose an adaptive attack on Bob's 3-isogeny chain computation that injects zeros on the imaginary parts of his intermediate secret 3-isogenous curves.
+To be best of our knowledge, our results open to a new kind of attack applicable to SIDH and SIKE.
 
 ## Cloning the repository
 
