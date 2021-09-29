@@ -1,0 +1,194 @@
+####  Makefile for compilation on Unix-like operative systems  ####
+
+CC=clang
+ifeq "$(CC)" "gcc"
+    COMPILER=gcc
+else ifeq "$(CC)" "clang"
+    COMPILER=clang
+endif
+
+ARCHITECTURE=_AMD64_
+USE_OPT_LEVEL=_FAST_
+ifeq "$(ARCH)" "x64"
+    ARCHITECTURE=_AMD64_
+    USE_OPT_LEVEL=_FAST_
+else ifeq "$(ARCH)" "x86"
+    ARCHITECTURE=_X86_
+    USE_OPT_LEVEL=_GENERIC_
+else ifeq "$(ARCH)" "s390x"
+    ARCHITECTURE=_S390X_
+    USE_OPT_LEVEL=_GENERIC_
+else ifeq "$(ARCH)" "ARM"
+    ARCHITECTURE=_ARM_
+    USE_OPT_LEVEL=_GENERIC_
+    ARM_TARGET=YES
+else ifeq "$(ARCH)" "ARM64"
+    ARCHITECTURE=_ARM64_
+    USE_OPT_LEVEL=_FAST_
+    ARM_TARGET=YES
+endif
+
+ifeq "$(OPT_LEVEL)" "GENERIC"
+    USE_OPT_LEVEL=_GENERIC_
+endif
+
+ifeq "$(ARM_TARGET)" "YES"
+    ARM_SETTING=-lrt
+endif
+
+ifeq "$(ARCHITECTURE)" "_AMD64_"
+    ifeq "$(USE_OPT_LEVEL)" "_FAST_"
+        MULX=-D _MULX_
+        ifeq "$(USE_MULX)" "FALSE"
+            MULX=
+        else
+            ADX=-D _ADX_
+            ifeq "$(USE_ADX)" "FALSE"
+                ADX=
+            endif
+        endif
+    endif
+endif
+
+AR=ar rcs
+RANLIB=ranlib
+
+ADDITIONAL_SETTINGS=-march=native
+ifeq "$(CC)" "clang"
+ifeq "$(ARM_TARGET)" "YES"
+    ADDITIONAL_SETTINGS=
+endif
+endif
+ifeq "$(ARCHITECTURE)" "_S390X_"
+	ADDITIONAL_SETTINGS=-march=z10
+endif
+
+VALGRIND_CFLAGS=
+ifeq "$(DO_VALGRIND_CHECK)" "TRUE"
+VALGRIND_CFLAGS= -g -O0 -DDO_VALGRIND_CHECK
+endif
+
+ifeq "$(EXTRA_CFLAGS)" ""
+CFLAGS= -O3     # Optimization option by default
+else
+CFLAGS= $(EXTRA_CFLAGS)
+endif
+CFLAGS+= $(VALGRIND_CFLAGS)
+CFLAGS+= -std=gnu11 -Wall $(ADDITIONAL_SETTINGS) -D $(ARCHITECTURE) -D __NIX__ -D $(USE_OPT_LEVEL) $(MULX) $(ADX)
+LDFLAGS=-lm
+ifeq "$(USE_OPT_LEVEL)" "_GENERIC_"
+    EXTRA_OBJECTS_434=./PQCrypto-SIDH/objs434/fp_generic.o
+    EXTRA_OBJECTS_503=./PQCrypto-SIDH/objs503/fp_generic.o
+    EXTRA_OBJECTS_610=./PQCrypto-SIDH/objs610/fp_generic.o
+    EXTRA_OBJECTS_751=./PQCrypto-SIDH/objs751/fp_generic.o
+else ifeq "$(USE_OPT_LEVEL)" "_FAST_"
+ifeq "$(ARCHITECTURE)" "_AMD64_"
+    EXTRA_OBJECTS_434=./PQCrypto-SIDH/objs434/fp_x64.o ./PQCrypto-SIDH/objs434/fp_x64_asm.o
+    EXTRA_OBJECTS_503=./PQCrypto-SIDH/objs503/fp_x64.o ./PQCrypto-SIDH/objs503/fp_x64_asm.o
+    EXTRA_OBJECTS_610=./PQCrypto-SIDH/objs610/fp_x64.o ./PQCrypto-SIDH/objs610/fp_x64_asm.o
+    EXTRA_OBJECTS_751=./PQCrypto-SIDH/objs751/fp_x64.o ./PQCrypto-SIDH/objs751/fp_x64_asm.o
+else ifeq "$(ARCHITECTURE)" "_ARM64_"
+    EXTRA_OBJECTS_434=./PQCrypto-SIDH/objs434/fp_arm64.o ./PQCrypto-SIDH/objs434/fp_arm64_asm.o
+    EXTRA_OBJECTS_503=./PQCrypto-SIDH/objs503/fp_arm64.o ./PQCrypto-SIDH/objs503/fp_arm64_asm.o
+    EXTRA_OBJECTS_610=./PQCrypto-SIDH/objs610/fp_arm64.o ./PQCrypto-SIDH/objs610/fp_arm64_asm.o
+    EXTRA_OBJECTS_751=./PQCrypto-SIDH/objs751/fp_arm64.o ./PQCrypto-SIDH/objs751/fp_arm64_asm.o
+endif
+endif
+
+OBJECTS_434_attack=objs434/P434_attack.o ./PQCrypto-SIDH/objs434/P434.o $(EXTRA_OBJECTS_434) ./PQCrypto-SIDH/objs/random.o ./PQCrypto-SIDH/objs/fips202.o
+OBJECTS_503_attack=objs503/P503_attack.o ./PQCrypto-SIDH/objs503/P503.o $(EXTRA_OBJECTS_503) ./PQCrypto-SIDH/objs/random.o ./PQCrypto-SIDH/objs/fips202.o
+OBJECTS_610_attack=objs610/P610_attack.o ./PQCrypto-SIDH/objs610/P610.o $(EXTRA_OBJECTS_610) ./PQCrypto-SIDH/objs/random.o ./PQCrypto-SIDH/objs/fips202.o
+OBJECTS_751_attack=objs751/P751_attack.o ./PQCrypto-SIDH/objs751/P751.o $(EXTRA_OBJECTS_751) ./PQCrypto-SIDH/objs/random.o ./PQCrypto-SIDH/objs/fips202.o
+
+all: libsidh lib434_attack lib434_attack lib610_attack lib751_attack tests move
+
+objs434/P434_attack.o: P434/P434_attack.c
+	@mkdir -p $(@D)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+lib434_attack: $(OBJECTS_434_attack)
+	rm -rf lib434_attack sidh434_attack
+	mkdir lib434_attack sidh434_attack
+	$(AR) lib434_attack/libsidh_attack.a $^
+	$(RANLIB) lib434_attack/libsidh_attack.a
+
+objs503/P503_attack.o: P503/P503_attack.c
+	@mkdir -p $(@D)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+lib503_attack: $(OBJECTS_503_attack)
+	rm -rf lib503_attack sidh503_attack
+	mkdir lib503_attack sidh503_attack
+	$(AR) lib503_attack/libsidh_attack.a $^
+	$(RANLIB) lib503_attack/libsidh_attack.a
+
+objs610/P610_attack.o: P610/P610_attack.c
+	@mkdir -p $(@D)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+lib610_attack: $(OBJECTS_610_attack)
+	rm -rf lib610_attack sidh610_attack
+	mkdir lib610_attack sidh610_attack
+	$(AR) lib610_attack/libsidh_attack.a $^
+	$(RANLIB) lib610_attack/libsidh_attack.a
+
+objs751/P751_attack.o: P751/P751_attack.c
+	@mkdir -p $(@D)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+lib751_attack: $(OBJECTS_751_attack)
+	rm -rf lib751_attack sidh751_attack
+	mkdir lib751_attack sidh751_attack
+	$(AR) lib751_attack/libsidh_attack.a $^
+	$(RANLIB) lib751_attack/libsidh_attack.a
+
+tests: lib434_attack lib503_attack lib610_attack lib751_attack
+	$(CC) $(CFLAGS) -L./lib434_attack ./P434/test_SIDHp434_attack.c ./PQCrypto-SIDH/tests/test_extras.c -lsidh_attack $(LDFLAGS) -o sidh434_attack/test_SIDH $(ARM_SETTING)
+	@#$(CC) $(CFLAGS) -L./lib434_attack ./P434/test_SIKEp434_attack.c ./PQCrypto-SIDH/tests/test_extras.c -lsidh_attack $(LDFLAGS) -o sidh434_attack/test_SIKE $(ARM_SETTING)
+	$(CC) $(CFLAGS) -L./lib503_attack ./P503/test_SIDHp503_attack.c ./PQCrypto-SIDH/tests/test_extras.c -lsidh_attack $(LDFLAGS) -o sidh503_attack/test_SIDH $(ARM_SETTING)
+	@#$(CC) $(CFLAGS) -L./lib503_attack ./P503/test_SIKEp503_attack.c ./PQCrypto-SIDH/tests/test_extras.c -lsidh_attack $(LDFLAGS) -o sidh503_attack/test_SIKE $(ARM_SETTING)
+	$(CC) $(CFLAGS) -L./lib610_attack ./P610/test_SIDHp610_attack.c ./PQCrypto-SIDH/tests/test_extras.c -lsidh_attack $(LDFLAGS) -o sidh610_attack/test_SIDH $(ARM_SETTING)
+	@#$(CC) $(CFLAGS) -L./lib610_attack ./P610/test_SIKEp610_attack.c ./PQCrypto-SIDH/tests/test_extras.c -lsidh_attack $(LDFLAGS) -o sidh610_attack/test_SIKE $(ARM_SETTING)
+	$(CC) $(CFLAGS) -L./lib751_attack ./P751/test_SIDHp751_attack.c ./PQCrypto-SIDH/tests/test_extras.c -lsidh_attack $(LDFLAGS) -o sidh751_attack/test_SIDH $(ARM_SETTING)
+	@#$(CC) $(CFLAGS) -L./lib751_attack ./P751/test_SIKEp751_attack.c ./PQCrypto-SIDH/tests/test_extras.c -lsidh_attack $(LDFLAGS) -o sidh751_attack/test_SIKE $(ARM_SETTING)
+
+libsidh:
+	$(MAKE) -C PQCrypto-SIDH
+
+move:
+	@rm -fr build/PQCRypto-SIDH/
+	@mkdir build/PQCrypto-SIDH/
+	@mv -f PQCrypto-SIDH/arith_tests-p434 build/PQCrypto-SIDH/arith_tests-p434
+	@mv -f PQCrypto-SIDH/arith_tests-p503 build/PQCrypto-SIDH/arith_tests-p503
+	@mv -f PQCrypto-SIDH/arith_tests-p610 build/PQCrypto-SIDH/arith_tests-p610
+	@mv -f PQCrypto-SIDH/arith_tests-p751 build/PQCrypto-SIDH/arith_tests-p751
+	@mv -f PQCrypto-SIDH/lib434comp/ build/PQCrypto-SIDH/lib434comp/
+	@mv -f PQCrypto-SIDH/lib503comp/ build/PQCrypto-SIDH/lib503comp/
+	@mv -f PQCrypto-SIDH/lib610comp/ build/PQCrypto-SIDH/lib610comp/
+	@mv -f PQCrypto-SIDH/lib751comp/ build/PQCrypto-SIDH/lib751comp/
+	@mv -f PQCrypto-SIDH/sidh434/ build/PQCrypto-SIDH/sidh434/
+	@mv -f PQCrypto-SIDH/sidh434_compressed/ build/PQCrypto-SIDH/sidh434_compressed/
+	@mv -f PQCrypto-SIDH/sidh503/ build/PQCrypto-SIDH/sidh503/
+	@mv -f PQCrypto-SIDH/sidh503_compressed/ build/PQCrypto-SIDH/sidh503_compressed/
+	@mv -f PQCrypto-SIDH/sidh610/ build/PQCrypto-SIDH/sidh610/
+	@mv -f PQCrypto-SIDH/sidh610_compressed/ build/PQCrypto-SIDH/sidh610_compressed/
+	@mv -f PQCrypto-SIDH/sidh751/ build/PQCrypto-SIDH/sidh751/
+	@mv -f PQCrypto-SIDH/sidh751_compressed/ build/PQCrypto-SIDH/sidh751_compressed/
+	@mv -f PQCrypto-SIDH/sike434/ build/PQCrypto-SIDH/sike434/
+	@mv -f PQCrypto-SIDH/sike434_compressed/ build/PQCrypto-SIDH/sike434_compressed/
+	@mv -f PQCrypto-SIDH/sike503/ build/PQCrypto-SIDH/sike503/
+	@mv -f PQCrypto-SIDH/sike503_compressed/ build/PQCrypto-SIDH/sike503_compressed/
+	@mv -f PQCrypto-SIDH/sike610/ build/PQCrypto-SIDH/sike610/
+	@mv -f PQCrypto-SIDH/sike610_compressed/ build/PQCrypto-SIDH/sike610_compressed/
+	@mv -f PQCrypto-SIDH/sike751/ build/PQCrypto-SIDH/sike751/
+	@mv -f PQCrypto-SIDH/sike751_compressed/ build/PQCrypto-SIDH/sike751_compressed/
+
+clean:
+	$(MAKE) clean -C PQCrypto-SIDH
+	rm -rf objs434 lib434_attack sidh434_attack
+	rm -rf objs503 lib503_attack sidh503_attack
+	rm -rf objs610 lib610_attack sidh610_attack
+	rm -rf objs751 lib751_attack sidh751_attack
+	rm -rf build/PQCrypto-SIDH
+
+.PHONY: clean
