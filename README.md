@@ -7,7 +7,7 @@ In particular, we attack 3-isogeny chains (our results can be easily adapted to 
 ## Cloning the repository
 
 ```bash
-# Branch faulting-isogenies has a submodule
+# Cloning including the submodule
 git clone --recurse-submodules git@github.com:FaultyIsogenies/faulty-isogeny-code.git
 ```
 
